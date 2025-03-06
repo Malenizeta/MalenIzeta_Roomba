@@ -2,21 +2,30 @@ import pygame
 import concurrent.futures
 
 #Creación de la ventana
-WIDTH, HEIGHT = 500, 500  
-ROWS, COLS = 10, 10  
+WIDTH, HEIGHT = 500, 250  
+COLS, ROWS = 10, 5
 CELL_SIZE = WIDTH // COLS 
 
 # Colores
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
+zonas = {
+
+    'Zona 1': (3, 5),
+    'Zona 2': (7, 2),
+    'Zona 3': (1, 7),
+    'Zona 4': (2, 4)
+
+ }
 
 obstacles = {
-    (2, 2), (2, 3), (3, 2),
-    (5, 7), (6, 7), (6, 8),
-    (7, 3), (8, 3), (8, 4), (8, 5),
-    (4, 6), (4, 7), (5, 6)
+    (2,3), (2,4), (2,5), (3,3), (3,4), (3,5)
 }
+
+def calcular_area(filas,columnas):
+    return filas*columnas
+
 
 def calcular_area_disponible(rows, cols, obstacles):
     #Calcula el área total disponible para pintar con 3 vidas adicionales
@@ -35,13 +44,31 @@ def draw_grid(screen):
 def main():
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-  
-    
-    # Calculo el área total disponible usando concurrencia
+    areas={}
+   
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        future_area = executor.submit(calcular_area_disponible, ROWS, COLS, obstacles)
-        pintura_restante = future_area.result()
+        # Asignamos cada cálculo a un hilo
+        future_to_zona = {
+            executor.submit(calcular_area, filas, columnas): zona
+            for zona, (filas, columnas) in zonas.items()
+        }
+        
+        # Recogemos los resultados a medida que se van completando
+        for future in concurrent.futures.as_completed(future_to_zona):
+            zona = future_to_zona[future]
+            try:
+                area = future.result()
+            except Exception as exc:
+                print(f"{zona} generó una excepción: {exc}")
+            else:
+                areas[zona] = area
+                print(f"{zona}: {area} cm²")
+        
     
+    # Calcular la superficie total sumando las áreas parciales
+    cantidad_pintura = sum(areas.values())+3
+    print(f"\nCantidad de pintura total: {cantidad_pintura} cm²")
+
     running = True
     while running:
         screen.fill(WHITE)
