@@ -1,8 +1,9 @@
 import pygame
 import concurrent.futures
+import os
 
 # Creación de la ventana
-WIDTH, HEIGHT = 500, 250  
+WIDTH, HEIGHT = 1440, 720  
 COLS, ROWS = 10, 5
 CELL_SIZE = WIDTH // COLS 
 
@@ -37,19 +38,25 @@ def draw_grid(screen):
         for col in range(COLS):
             rect = pygame.Rect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE)
             if (row, col) in painted_cells:
-                intensity = max(0, 255 - (painted_cells[(row, col)] * 80))  # Degradado según vidas
-                pygame.draw.rect(screen, (0, 0, intensity), rect)
+                pygame.draw.rect(screen, BLUE, rect)
             elif (row, col) in obstacles:
                 pygame.draw.rect(screen, BLACK, rect)
             elif (row, col) == player_fin:
                 pygame.draw.rect(screen, RED, rect)
             pygame.draw.rect(screen, WHITE, rect, 1)
 
+def draw_text(screen, text, position, font, color=BLACK):
+    text_surface = font.render(text, True, color)
+    screen.blit(text_surface, position)
+
 def main():
     player_pos = [0, 0]
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     areas = {}
+    font_path = os.path.join(os.path.dirname(__file__), "Royale.ttf")
+    font = pygame.font.Font(font_path, 18)
+    painted_cells[0,0] = 3
    
     with concurrent.futures.ThreadPoolExecutor() as executor:
         # Asignamos cada cálculo a un hilo
@@ -70,7 +77,7 @@ def main():
                 print(f"{zona}: {area} cm²")
             
     # Calcular la superficie total sumando las áreas parciales
-    pintura_restante = sum(areas.values()) + 3
+    pintura_restante = sum(areas.values()) + 2
     print(f"\nCantidad de pintura total: {pintura_restante} cm²")
 
     running = True
@@ -78,6 +85,12 @@ def main():
         screen.fill(WHITE)
         draw_grid(screen)
         pygame.draw.rect(screen, GREEN, (player_pos[1] * CELL_SIZE, player_pos[0] * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+        
+         # Mostrar la cantidad de pintura restante y las celdas que quedan por pintar
+        celdas_restantes = sum(areas.values()) - len(painted_cells)
+        draw_text(screen, f"PINTURA RESTANTE: {pintura_restante}", (10, 10), font)
+        draw_text(screen, f"CELDAS RESTANTES: {celdas_restantes}", (10, 50), font)
+
         pygame.display.flip()
 
         for event in pygame.event.get():
@@ -94,17 +107,11 @@ def main():
                 elif event.key == pygame.K_RIGHT:
                     new_pos[1] += 1
                
-                # Verificar si la nueva posición es válida
+                # Verifico si la nueva posición es válida
                 if (0 <= new_pos[0] < ROWS and 0 <= new_pos[1] < COLS and tuple(new_pos) not in obstacles):
-                    if tuple(new_pos) in painted_cells:
-                        if painted_cells[tuple(new_pos)] > 0:
-                            painted_cells[tuple(new_pos)] -= 1
-                            pintura_restante -= 1  # Restar pintura disponible
-                        else:
-                            continue  # Si se agotaron las "vidas" de la celda, no permitir pisarla
-                    else:
-                        painted_cells[tuple(new_pos)] = 2  # Cada celda empieza con 3 vidas (2 + 1 al pisarla)
-                        pintura_restante -= 1  # Restar pintura disponible
+                    
+                    pintura_restante -= 1  # Restar pintura disponible
+                    painted_cells[tuple(new_pos)] = 3
                     player_pos = new_pos  # Mover al jugador
                
         # Verificar si la pintura se ha agotado
