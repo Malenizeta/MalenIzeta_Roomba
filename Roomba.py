@@ -33,12 +33,12 @@ def calcular_area(filas,columnas):
     return filas*columnas
 
             
-def draw_grid(screen):
+def draw_grid(screen, painted_cell_image):
     for row in range(ROWS):
         for col in range(COLS):
             rect = pygame.Rect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE)
             if (row, col) in painted_cells:
-                pygame.draw.rect(screen, BLUE, rect)
+                screen.blit(painted_cell_image, rect)
             elif (row, col) in obstacles:
                 pygame.draw.rect(screen, BLACK, rect)
             elif (row, col) == player_fin:
@@ -57,7 +57,12 @@ def main():
     font_path = os.path.join(os.path.dirname(__file__), "Royale.ttf")
     font = pygame.font.Font(font_path, 18)
     painted_cells[0,0] = 3
+
+   # Cargar la imagen de la celda pintada
+    painted_cell_image_path = os.path.join(os.path.dirname(__file__), "Tiles", "Tile1.jpg")
+    painted_cell_image = pygame.image.load(painted_cell_image_path)
    
+
     with concurrent.futures.ThreadPoolExecutor() as executor:
         # Asignamos cada cálculo a un hilo
         future_to_zona = {
@@ -83,7 +88,7 @@ def main():
     running = True
     while running:
         screen.fill(WHITE)
-        draw_grid(screen)
+        draw_grid(screen, painted_cell_image)
         pygame.draw.rect(screen, GREEN, (player_pos[1] * CELL_SIZE, player_pos[0] * CELL_SIZE, CELL_SIZE, CELL_SIZE))
         
          # Mostrar la cantidad de pintura restante y las celdas que quedan por pintar
