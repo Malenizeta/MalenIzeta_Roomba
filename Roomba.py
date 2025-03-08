@@ -4,7 +4,7 @@ import os
 
 # Creación de la ventana
 WIDTH, HEIGHT = 1440, 720  
-COLS, ROWS = 10, 5
+COLS, ROWS = 12, 6
 CELL_SIZE = WIDTH // COLS 
 
 # Colores
@@ -15,7 +15,7 @@ GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 
 
-player_fin = (ROWS - 1, COLS - 1)
+player_fin = (ROWS - 1, COLS - 2)
 painted_cells = {}
 
 zonas = {
@@ -33,7 +33,13 @@ obstacles = [
     {
         "cells": {(1, 7), (1, 8), (2, 7), (2, 8)},
         "image": "obstacle2.png"
-    }
+    },
+    {
+        "cells": {(0, 10), (0,11), 
+                  (1, 10), (1, 11),
+                  (2, 10), (2, 11)},
+        "image": "obstacle3.jpg"
+    }   
 ]
 
 def calcular_area(filas,columnas):
@@ -51,7 +57,8 @@ def draw_grid(screen, painted_cell_image, obstacle_images):
             elif (row, col) == player_fin:
                 pygame.draw.rect(screen, RED, rect)
         for obstacle_image, obstacle_rect in obstacle_images:
-            screen.blit(obstacle_image, obstacle_rect)         
+            screen.blit(obstacle_image, obstacle_rect) 
+               
 
 def draw_text(screen, text, position, font, color=BLACK):
     text_surface = font.render(text, True, color)
