@@ -73,14 +73,18 @@ class Game:
     def draw_text(self, text, position):
         self.screen.blit(self.font.render(text, True, BLACK), position)
     
+    def reset_level(self):
+        self.player_pos = list(self.level.player_start)
+        self.level.painted_cells = {self.level.player_start: 3}
+        self.level.pintura_restante = self.level.calcular_pintura()
+        print("Nivel reiniciado")
+
     def run(self):
         running = True
         while running:
             self.screen.fill(WHITE)
             self.draw_grid()
             pygame.draw.rect(self.screen, BLACK, (self.player_pos[1] * CELL_SIZE, self.player_pos[0] * CELL_SIZE, CELL_SIZE, CELL_SIZE))
-            self.draw_text(f"PINTURA RESTANTE: {self.level.pintura_restante}", (10, 10))
-            self.draw_text(f"CELDAS RESTANTES: {self.level.calcular_pintura()}", (10, 50))
             pygame.display.flip()
             
             for event in pygame.event.get():
@@ -89,7 +93,7 @@ class Game:
                 elif event.type == pygame.KEYDOWN:
                     self.move_player(event)
             
-            if self.level.pintura_restante <= 0 or tuple(self.player_pos) == self.level.player_end:
+            if self.level.pintura_restante <= 0:
                 print("¡Fin del juego!")
                 running = False
         pygame.quit()
@@ -106,9 +110,12 @@ class Game:
             new_pos[1] += 1
         
         if (0 <= new_pos[0] < ROWS and 0 <= new_pos[1] < COLS and tuple(new_pos) not in [cell for obs in self.level.obstacles for cell in obs["cells"]]):
-            self.level.pintura_restante -= 1
-            self.level.painted_cells[tuple(new_pos)] = 3
-            self.player_pos = new_pos
+            if tuple(new_pos) in self.level.painted_cells:
+                self.reset_level()
+            else:
+                self.level.pintura_restante -= 1
+                self.level.painted_cells[tuple(new_pos)] = 1
+                self.player_pos = new_pos
 
 if __name__ == "__main__":
     level1 = Level(
@@ -119,7 +126,7 @@ if __name__ == "__main__":
         "cells": {(2, 3), (2, 4), (2, 5), (3, 3), (3, 4), (3, 5)}, "image": "obstacle1.jpg"
         },
         {
-        "cells": {(1, 7), (1, 8), (2, 7), (2, 8)},"image": "obstacle2.png"
+        "cells": {(1, 7), (1, 8), (2, 7), (2, 8)},"image": "obstacle2.jpg"
         },
         {
         "cells": {(0, 10), (0,11), (1, 10), (1, 11), (2, 10), (2, 11)},"image": "obstacle3.jpg" 
