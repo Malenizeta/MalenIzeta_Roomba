@@ -18,14 +18,24 @@ class Level:
         self.painted_cell_image = pygame.image.load(os.path.join("Tiles", painted_cell_image))
         self.painted_cell_image = pygame.transform.scale(self.painted_cell_image, (CELL_SIZE, CELL_SIZE))
 
-        self.painted_cells = {player_start}
-        self.pintura_restante = self.calcular_pintura()
+        try:
+            self.painted_cells = {player_start}
+            self.pintura_restante = self.calcular_pintura()
+        except pygame.error as e:
+            print(f"Error al cargar la imagen de la celda pintada: {e}")
+            self.painted_cell_image = None
+    
+    #Es un cálculo simple y rápido, por lo que no es necesario usar hilos
+    #def calcular_pintura(self):
+    #   with concurrent.futures.ThreadPoolExecutor() as executor:
+    #       total_celdas = ROWS * COLS
+    #       obstaculos_celdas = sum(executor.map(len, [obstacle["cells"] for obstacle in self.obstacles]))
+    #        return total_celdas - obstaculos_celdas - len(self.painted_cells)
     
     def calcular_pintura(self):
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            total_celdas = ROWS * COLS
-            obstaculos_celdas = sum(executor.map(len, [obstacle["cells"] for obstacle in self.obstacles]))
-            return total_celdas - obstaculos_celdas - len(self.painted_cells)
+        total_celdas = ROWS * COLS
+        obstaculos_celdas = sum(len(obstacle["cells"]) for obstacle in self.obstacles)
+        return total_celdas - obstaculos_celdas - len(self.painted_cells)
     
     def cargar_imagenes_obstaculos(self):
         obstacle_images = []
@@ -44,9 +54,14 @@ class Level:
         min_row, max_row = min(c[0] for c in obstacle_cells), max(c[0] for c in obstacle_cells)
         min_col, max_col = min(c[1] for c in obstacle_cells), max(c[1] for c in obstacle_cells)
         obstacle_rect = pygame.Rect(min_col * CELL_SIZE, min_row * CELL_SIZE, (max_col - min_col + 1) * CELL_SIZE, (max_row - min_row + 1) * CELL_SIZE)
-        image_path = os.path.join("Tiles", obstacle["image"])
-        image = pygame.image.load(image_path)
-        image = pygame.transform.scale(image, (obstacle_rect.width, obstacle_rect.height))
+        
+        try:
+            image_path = os.path.join("Tiles", obstacle["image"])
+            image = pygame.image.load(image_path)
+            image = pygame.transform.scale(image, (obstacle_rect.width, obstacle_rect.height))
+        except pygame.error as e:
+            print(f"Error al cargar la imagen del obstáculo {obstacle['image']}: {e}")
+            image = None
         return (image, obstacle_rect)
 
 class Game:
@@ -55,7 +70,7 @@ class Game:
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         self.font = pygame.font.Font("Royale.ttf", 18)
         self.levels = levels
-        self.current_level_index = 0
+        self.current_level_index = 2
         self.load_level()
 
     def load_level(self):
@@ -140,9 +155,17 @@ if __name__ == "__main__":
                 {"cells": {(0, 10), (0, 11), (1, 10), (1, 11), (2, 10), (2, 11)}, "image": "obstacle3.jpg"},
                 {"cells": {(3, 0), (3, 1), (4, 0), (4, 1), (5, 0), (5, 1)}, "image": "obstacle3.jpg"}
             ], 
-            "Tile3.jpg"
+            "Tile1.jpg"
         ),
-        Level((0, 0), (5, 10), [{"cells": {(2, 3), (2, 4)}, "image": "obstacle2.jpg"}], "Tile2.jpg"),
+        Level(
+            (2, 4), (1, 10), 
+            [ 
+                {"cells": {(1, 2), (2, 2), (3, 2), (4, 2),}, "image": "obstacle2.jpg"},
+                {"cells": {(2, 6), (3, 6)}, "image": "obstacle2.jpg"},
+                {"cells": {(3, 9), (3, 10), (4, 9), (4, 10)}, "image": "obstacle2.jpg"}
+            ], 
+            "Tile1.jpg"
+        ),
         Level((0, 0), (5, 10), [{"cells": {(2, 3), (2, 4)}, "image": "obstacle3.jpg"}], "Tile1.jpg")
     ]
     Game(levels).run()
