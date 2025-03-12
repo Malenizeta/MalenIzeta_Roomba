@@ -11,11 +11,14 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
 class Level:
-    def __init__(self, player_start, player_end, obstacles):
+    def __init__(self, player_start, player_end, obstacles, painted_cell_image):
         self.player_start = player_start
         self.player_end = player_end
         self.obstacles = obstacles
-        self.painted_cells = {player_start: 3}
+        self.painted_cell_image = pygame.image.load(os.path.join("Tiles", painted_cell_image))
+        self.painted_cell_image = pygame.transform.scale(self.painted_cell_image, (CELL_SIZE, CELL_SIZE))
+
+        self.painted_cells = {player_start}
         self.pintura_restante = self.calcular_pintura()
     
     def calcular_pintura(self):
@@ -47,57 +50,49 @@ class Level:
         return (image, obstacle_rect)
 
 class Game:
-    def __init__(self, level):
+    def __init__(self, levels):
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         self.font = pygame.font.Font("Royale.ttf", 18)
-        self.level = level
-        self.player_pos = list(level.player_start)
-        self.painted_cell_image = pygame.image.load(os.path.join("Tiles", "Tile3.jpg"))
-        self.painted_cell_image = pygame.transform.scale(self.painted_cell_image, (CELL_SIZE, CELL_SIZE))
-        self.obstacle_images = level.cargar_imagenes_obstaculos()
+        self.levels = levels
+        self.current_level_index = 0
+        self.load_level()
+
+    def load_level(self):
+        self.level = self.levels[self.current_level_index]
+        self.obstacle_images = self.level.cargar_imagenes_obstaculos()
+        self.player_pos = list(self.level.player_start)  
+        self.level.painted_cells = {self.level.player_start: 3} 
+        self.level.pintura_restante = self.level.calcular_pintura()   
     
     def draw_grid(self):
         for row in range(ROWS):
             for col in range(COLS):
                 rect = pygame.Rect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE)
                 if (row, col) in self.level.painted_cells:
-                    self.screen.blit(self.painted_cell_image, rect)
+                    self.screen.blit(self.level.painted_cell_image, rect)
                 elif any((row, col) in obstacle["cells"] for obstacle in self.level.obstacles):
                     pygame.draw.rect(self.screen, BLACK, rect)
                 elif (row, col) == self.level.player_end:
                     pygame.draw.rect(self.screen, BLACK, rect)
         for img, rect in self.obstacle_images:
             self.screen.blit(img, rect)
-    
-    def draw_text(self, text, position):
-        self.screen.blit(self.font.render(text, True, BLACK), position)
-    
+      
     def reset_level(self):
         self.player_pos = list(self.level.player_start)
         self.level.painted_cells = {self.level.player_start: 3}
         self.level.pintura_restante = self.level.calcular_pintura()
         print("Nivel reiniciado")
-
-    def run(self):
-        running = True
-        while running:
-            self.screen.fill(WHITE)
-            self.draw_grid()
-            pygame.draw.rect(self.screen, BLACK, (self.player_pos[1] * CELL_SIZE, self.player_pos[0] * CELL_SIZE, CELL_SIZE, CELL_SIZE))
-            pygame.display.flip()
-            
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                elif event.type == pygame.KEYDOWN:
-                    self.move_player(event)
-            
-            if self.level.pintura_restante <= 0:
-                print("¡Fin del juego!")
-                running = False
-        pygame.quit()
     
+    def next_level(self):
+        self.current_level_index += 1
+        if self.current_level_index < len(self.levels):
+            self.load_level()
+        else:
+            print("¡Juego completado!")
+            pygame.quit()
+            exit()
+
     def move_player(self, event):
         new_pos = self.player_pos[:]
         if event.key == pygame.K_UP:
@@ -116,23 +111,38 @@ class Game:
                 self.level.pintura_restante -= 1
                 self.level.painted_cells[tuple(new_pos)] = 1
                 self.player_pos = new_pos
+        if self.level.pintura_restante <= 0 and tuple(self.player_pos) == self.level.player_end:
+             self.next_level()
 
+    def run(self):
+        running = True
+        while running:
+            self.screen.fill(WHITE)
+            self.draw_grid()
+            pygame.draw.rect(self.screen, BLACK, (self.player_pos[1] * CELL_SIZE, self.player_pos[0] * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+            pygame.display.flip()
+            
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                elif event.type == pygame.KEYDOWN:
+                    self.move_player(event)
+        pygame.quit()
+    
+   
 if __name__ == "__main__":
-    level1 = Level(
-        player_start=(0, 0),
-        player_end=(5, 10),
-        obstacles=[
-        {
-        "cells": {(2, 3), (2, 4), (2, 5), (3, 3), (3, 4), (3, 5)}, "image": "obstacle1.jpg"
-        },
-        {
-        "cells": {(1, 7), (1, 8), (2, 7), (2, 8)},"image": "obstacle2.jpg"
-        },
-        {
-        "cells": {(0, 10), (0,11), (1, 10), (1, 11), (2, 10), (2, 11)},"image": "obstacle3.jpg" 
-        },
-        {
-        "cells": {(3, 0), (3,1),(4, 0), (4, 1),(5, 0), (5, 1)},"image": "obstacle3.jpg"} 
-        ]
-    )
-    Game(level1).run()
+    levels = [
+        Level(
+            (0, 0), (5, 10), 
+            [
+                {"cells": {(2, 3), (2, 4), (2, 5), (3, 3), (3, 4), (3, 5)}, "image": "obstacle1.jpg"},
+                {"cells": {(1, 7), (1, 8), (2, 7), (2, 8)}, "image": "obstacle2.jpg"},
+                {"cells": {(0, 10), (0, 11), (1, 10), (1, 11), (2, 10), (2, 11)}, "image": "obstacle3.jpg"},
+                {"cells": {(3, 0), (3, 1), (4, 0), (4, 1), (5, 0), (5, 1)}, "image": "obstacle3.jpg"}
+            ], 
+            "Tile3.jpg"
+        ),
+        Level((0, 0), (5, 10), [{"cells": {(2, 3), (2, 4)}, "image": "obstacle2.jpg"}], "Tile2.jpg"),
+        Level((0, 0), (5, 10), [{"cells": {(2, 3), (2, 4)}, "image": "obstacle3.jpg"}], "Tile1.jpg")
+    ]
+    Game(levels).run()
