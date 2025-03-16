@@ -68,7 +68,7 @@ class Game:
     def __init__(self, levels):
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        self.font = pygame.font.Font("Royale.ttf", 18)
+        self.font = pygame.font.Font("futuraM.ttf", 18)
         self.levels = levels
         self.current_level_index = 0
         self.load_level()
@@ -89,7 +89,10 @@ class Game:
                 elif any((row, col) in obstacle["cells"] for obstacle in self.level.obstacles):
                     pygame.draw.rect(self.screen, BLACK, rect)
                 elif (row, col) == self.level.player_end:
-                    pygame.draw.rect(self.screen, BLACK, rect)
+                    pygame.draw.rect(self.screen, BLACK, rect, 2)  
+                    text_surface = self.font.render("FINAL", True, BLACK)
+                    text_rect = text_surface.get_rect(center=rect.center)
+                    self.screen.blit(text_surface, text_rect)
         for img, rect in self.obstacle_images:
             self.screen.blit(img, rect)
       
@@ -157,15 +160,7 @@ if __name__ == "__main__":
             ], 
             "Tile1.jpg"
         ),
-        Level(
-            (2, 4), (1, 10), 
-            [ 
-                {"cells": {(1, 2), (2, 2), (3, 2), (4, 2),(1, 3), (2, 3), (3, 3), (4, 3),}, "image": "obstacle5.jpg"},
-                {"cells": {(2, 6), (3, 6)}, "image": "obstacle6.jpg"},
-                {"cells": {(3, 9), (3, 10), (4, 9), (4, 10)}, "image": "obstacle7.jpg"}
-            ], 
-            "Tile2.jpg"
-        ),
+        
         Level(
             (0, 0), (0, 9), 
             [
@@ -176,12 +171,24 @@ if __name__ == "__main__":
             ], 
             "Tile3.jpg"
         ),
+
         Level(
             (3,2), (1, 10), 
             [
                 {"cells": {(1, 3), (1, 4), (1,5), (2, 3), (2, 4), (2,5), (3, 3), (3, 4), (3,5)}, "image": "obstacle11.jpg"},
                 {"cells": {(3, 7), (3, 8), (3,9), (3, 10), (4, 7), (4, 8), (4,9), (4, 10)}, "image": "obstacle12.jpg"}   
             ], 
-            "Tile4.jpg")
+            "Tile4.jpg"),
+        
+        Level(
+            (2, 4), (1, 10), 
+            [ 
+                {"cells": {(1, 2), (2, 2), (3, 2), (4, 2),(1, 3), (2, 3), (3, 3), (4, 3),}, "image": "obstacle5.jpg"},
+                {"cells": {(2, 6), (3, 6)}, "image": "obstacle6.jpg"},
+                {"cells": {(3, 9), (3, 10), (4, 9), (4, 10)}, "image": "obstacle7.jpg"}
+            ], 
+            "Tile2.jpg"
+        ),
+        
     ]
     Game(levels).run()
