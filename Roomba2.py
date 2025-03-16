@@ -153,7 +153,7 @@ if __name__ == "__main__":
                 {"cells": {(2, 3), (2, 4), (2, 5), (3, 3), (3, 4), (3, 5)}, "image": "obstacle1.jpg"},
                 {"cells": {(1, 7), (1, 8), (2, 7), (2, 8)}, "image": "obstacle2.jpg"},
                 {"cells": {(0, 10), (0, 11), (1, 10), (1, 11), (2, 10), (2, 11)}, "image": "obstacle3.jpg"},
-                {"cells": {(3, 0), (3, 1), (4, 0), (4, 1), (5, 0), (5, 1)}, "image": "obstacle3.jpg"}
+                {"cells": {(3, 0), (3, 1), (4, 0), (4, 1), (5, 0), (5, 1)}, "image": "obstacle4.jpg"}
             ], 
             "Tile1.jpg"
         ),
@@ -177,18 +177,11 @@ if __name__ == "__main__":
             "Tile3.jpg"
         ),
         Level(
-            (0, 0), (0, 11), 
+            (3,2), (1, 10), 
             [
-                {"cells": {(5, 4), (5, 5)}, "image": "obstacle3.jpg"},
-                {"cells": {(4, 6), (4, 7), (5,6), (5,7)}, "image": "obstacle3.jpg"},
-                {"cells": {(3, 8), (3, 9), (4,8), (4,9), (5,8), (5,9)}, "image": "obstacle3.jpg"},
-                {"cells": {(2, 10), (2, 11), (3,10), (3,11), (4,10), (4,11), (5,10), (5,11)}, "image": "obstacle3.jpg"},
-                
-                {"cells": {(2, 4)}, "image": "obstacle3.jpg"},
-                {"cells": {(1,7)}, "image": "obstacle3.jpg"},
-                {"cells": {(0, 9)}, "image": "obstacle3.jpg"},
-                
+                {"cells": {(1, 3), (1, 4), (1,5), (2, 3), (2, 4), (2,5), (3, 3), (3, 4), (3,5)}, "image": "obstacle11.jpg"},
+                {"cells": {(3, 7), (3, 8), (3,9), (3, 10), (4, 7), (4, 8), (4,9), (4, 10)}, "image": "obstacle12.jpg"}   
             ], 
-            "Tile1.jpg")
+            "Tile4.jpg")
     ]
     Game(levels).run()
