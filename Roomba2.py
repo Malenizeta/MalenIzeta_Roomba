@@ -11,6 +11,7 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
 class Level:
+     # Inicializa el nivel con la posición inicial y final del jugador, obstáculos y la imagen de la celda pintada
     def __init__(self, player_start, player_end, obstacles, painted_cell_image):
         self.player_start = player_start
         self.player_end = player_end
@@ -19,6 +20,7 @@ class Level:
         self.painted_cell_image = pygame.transform.scale(self.painted_cell_image, (CELL_SIZE, CELL_SIZE))
 
         try:
+            # Inicializa las celdas pintadas y calcula la pintura restante
             self.painted_cells = {player_start}
             self.pintura_restante = self.calcular_pintura()
         except pygame.error as e:
@@ -32,11 +34,13 @@ class Level:
     #       obstaculos_celdas = sum(executor.map(len, [obstacle["cells"] for obstacle in self.obstacles]))
     #        return total_celdas - obstaculos_celdas - len(self.painted_cells)
     
+    # Calcula la cantidad de celdas que quedan por pintar
     def calcular_pintura(self):
         total_celdas = ROWS * COLS
         obstaculos_celdas = sum(len(obstacle["cells"]) for obstacle in self.obstacles)
         return total_celdas - obstaculos_celdas - len(self.painted_cells)
     
+    # Carga las imágenes de los obstáculos
     def cargar_imagenes_obstaculos(self):
         obstacle_images = []
         with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -48,7 +52,8 @@ class Level:
                 if result:
                     obstacle_images.append(result)
         return obstacle_images
-
+    
+    # Procesa cada obstáculo para cargar su imagen y calcular su rectángulo
     def procesar_obstaculo(self, obstacle):
         obstacle_cells = list(obstacle["cells"])
         min_row, max_row = min(c[0] for c in obstacle_cells), max(c[0] for c in obstacle_cells)
@@ -74,6 +79,7 @@ class Game:
         self.current_level_index = 0
         self.load_level()
 
+    # Carga el nivel actual
     def load_level(self):
         self.level = self.levels[self.current_level_index]
         self.obstacle_images = self.level.cargar_imagenes_obstaculos()
@@ -81,6 +87,7 @@ class Game:
         self.level.painted_cells = {self.level.player_start: 3} 
         self.level.pintura_restante = self.level.calcular_pintura()   
     
+    # Dibuja la cuadrícula del nivel
     def draw_grid(self):
         for row in range(ROWS):
             for col in range(COLS):
@@ -96,13 +103,15 @@ class Game:
                     self.screen.blit(text_surface, text_rect)
         for img, rect in self.obstacle_images:
             self.screen.blit(img, rect)
-      
+
+    # Reinicia el nivel actual  
     def reset_level(self):
         self.player_pos = list(self.level.player_start)
         self.level.painted_cells = {self.level.player_start: 3}
         self.level.pintura_restante = self.level.calcular_pintura()
         print("Nivel reiniciado")
     
+    # Avanza al siguiente nivel o muestra la pantalla de fin de juego
     def next_level(self):
         self.current_level_index += 1
         if self.current_level_index < len(self.levels):
@@ -119,6 +128,7 @@ class Game:
             pygame.quit()
             exit()
 
+    # Mueve al jugador según la tecla presionada
     def move_player(self, event):
         new_pos = self.player_pos[:]
         if event.key == pygame.K_UP:
@@ -140,6 +150,7 @@ class Game:
         if self.level.pintura_restante <= 0 and tuple(self.player_pos) == self.level.player_end:
              self.next_level()
 
+    # Bucle principal del juego
     def run(self):
         running = True
         while running:
@@ -155,7 +166,7 @@ class Game:
                     self.move_player(event)
         pygame.quit()
     
-   
+# Definición de los niveles del juego  
 if __name__ == "__main__":
     levels = [
         Level(
