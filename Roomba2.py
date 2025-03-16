@@ -68,7 +68,8 @@ class Game:
     def __init__(self, levels):
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        self.font = pygame.font.Font("futuraM.ttf", 18)
+        self.font = pygame.font.Font("futuraM.ttf", 36)
+        pygame.display.set_caption("Roomba y el Desafío del Papel Pintado")
         self.levels = levels
         self.current_level_index = 0
         self.load_level()
@@ -107,7 +108,14 @@ class Game:
         if self.current_level_index < len(self.levels):
             self.load_level()
         else:
-            print("¡Juego completado!")
+            final_image = pygame.image.load(os.path.join("Tiles", "Final.jpg"))
+            final_image = pygame.transform.scale(final_image, (WIDTH, HEIGHT))
+            self.screen.blit(final_image, (0, 0))
+            text_surface = self.font.render("¡JUEGO COMPLETADO!", True, BLACK)
+            text_rect = text_surface.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+            self.screen.blit(text_surface, text_rect)
+            pygame.display.flip()
+            pygame.time.wait(3000)
             pygame.quit()
             exit()
 
@@ -160,7 +168,7 @@ if __name__ == "__main__":
             ], 
             "Tile1.jpg"
         ),
-        
+
         Level(
             (0, 0), (0, 9), 
             [
